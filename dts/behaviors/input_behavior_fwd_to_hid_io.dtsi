@@ -1,0 +1,14 @@
+/*
+ * Copyright (c) 2020 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+/ {
+    behaviors {
+        /omit-if-no-ref/ ibfthi: input_behavior_fwd_to_hid_io {
+            compatible = "zmk,input-behavior-fwd-to-hid-io";
+            #binding-cells = <0>;
+        };
+    };
+};

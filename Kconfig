@@ -1,0 +1,39 @@
+# Sensor data simulator
+#
+# Copyright (c) 2019 Nordic Semiconductor
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+config ZMK_HID_IO
+    bool "Enable HID I/O"
+    default n
+
+config ZMK_HID_IO_MOUSE
+    bool "Enable HID I/O Mouse"
+    default n
+
+config ZMK_HID_IO_JOYSTICK
+    bool "Enable HID I/O Joystick"
+    default n
+
+config ZMK_HID_IO_OUTPUT
+    bool "Enable HID I/O Output"
+    default n
+
+config ZMK_HID_IO_BLE_JOYSTICK_REPORT_QUEUE_SIZE
+    int "Max number of mouse HID reports to queue for sending over BLE"
+    default 20
+
+config ZMK_HID_IO_BLE_MOUSE_REPORT_QUEUE_SIZE
+    int "Max number of mouse HID reports to queue for sending over BLE"
+    default 20
+
+config ZMK_HID_IO_OUTPUT_QUEUE_SIZE
+    int "Maximum number of output events to allow queueing from HID"
+    default 4
+
+DT_COMPAT_ZMK_INPUT_BEHAVIOR_FWD_TO_HID_IO := zmk,input-behavior-fwd-to-hid-io
+config ZMK_INPUT_BEHAVIOR_FWD_TO_HID_IO
+		bool
+		default $(dt_compat_enabled,$(DT_COMPAT_ZMK_INPUT_BEHAVIOR_FWD_TO_HID_IO))
