@@ -35,7 +35,7 @@ CONFIG_ZMK_HID_IO=y
 # Enable hid joystick, to recognized as a jotstick/gamepad from host
 CONFIG_ZMK_HID_IO_JOYSTICK=y
 
-# Enable hid mouse, to recognized as a jotstick/gamepad from host
+# Enable hid mouse, to recognized as a mouse from host
 CONFIG_ZMK_HID_IO_MOUSE=y
 
 # Enable hid haptic feedback, to accept HID Output from host. See https://github.com/badjeff/zmk-haptic-tester-macos
