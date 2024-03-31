@@ -41,6 +41,8 @@ CONFIG_ZMK_HID_IO_MOUSE=y
 # Enable hid haptic feedback, to accept HID Output from host. See https://github.com/badjeff/zmk-haptic-tester-macos
 CONFIG_ZMK_HID_IO_OUTPUT=y
 
+# Enable logging
+CONFIG_ZMK_HID_IO_LOG_LEVEL_DBG=y
 ```
 
 While module is enabling, a new HID interface shall available from usage page `0xFF0C`. The actual value of usage page and report id could be modified in `include/zmk/hid-io/hid.h`.

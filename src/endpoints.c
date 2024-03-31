@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The ZMK Contributors
+ * Copyright (c) 2024 The ZMK Contributors
  *
  * SPDX-License-Identifier: MIT
  */
@@ -10,7 +10,7 @@
 #include <zmk/hog.h>
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+LOG_MODULE_DECLARE(hid_io, CONFIG_ZMK_HID_IO_LOG_LEVEL);
 
 #include <zmk/hid-io/endpoints.h>
 #include <zmk/hid-io/hid.h>

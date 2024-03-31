@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2020 The ZMK Contributors
+ * Copyright (c) 2024 The ZMK Contributors
  *
  * SPDX-License-Identifier: MIT
  */
 
 #include "zmk/keys.h"
+
 #include <zephyr/logging/log.h>
-LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+LOG_MODULE_DECLARE(hid_io, CONFIG_ZMK_HID_IO_LOG_LEVEL);
 
 #include <zmk/hid.h>
 #include <dt-bindings/zmk/modifiers.h>
@@ -193,31 +194,31 @@ int zmk_hid_mou2_buttons_release(zmk_mouse_button_flags_t buttons) {
 void zmk_hid_mou2_movement_set(int16_t x, int16_t y) {
     mouse_report_alt.body.d_x = x;
     mouse_report_alt.body.d_y = y;
-    LOG_WRN("mou mov set to %d/%d", mouse_report_alt.body.d_x, mouse_report_alt.body.d_y);
+    LOG_DBG("mou mov set to %d/%d", mouse_report_alt.body.d_x, mouse_report_alt.body.d_y);
 }
 
 void zmk_hid_mou2_movement_update(int16_t x, int16_t y) {
     mouse_report_alt.body.d_x += x;
     mouse_report_alt.body.d_y += y;
-    LOG_WRN("mou mov updated to %d/%d", mouse_report_alt.body.d_x, mouse_report_alt.body.d_y);
+    LOG_DBG("mou mov updated to %d/%d", mouse_report_alt.body.d_x, mouse_report_alt.body.d_y);
 }
 
 void zmk_hid_mou2_scroll_set(int8_t x, int8_t y) {
     mouse_report_alt.body.d_scroll_x = x;
     mouse_report_alt.body.d_scroll_y = y;
-    LOG_WRN("mou scl set to %d/%d", mouse_report_alt.body.d_scroll_x,
+    LOG_DBG("mou scl set to %d/%d", mouse_report_alt.body.d_scroll_x,
             mouse_report_alt.body.d_scroll_y);
 }
 
 void zmk_hid_mou2_scroll_update(int8_t x, int8_t y) {
     mouse_report_alt.body.d_scroll_x += x;
     mouse_report_alt.body.d_scroll_y += y;
-    LOG_WRN("mou scl updated to X: %d/%d", mouse_report_alt.body.d_scroll_x,
+    LOG_DBG("mou scl updated to X: %d/%d", mouse_report_alt.body.d_scroll_x,
             mouse_report_alt.body.d_scroll_y);
 }
 
 void zmk_hid_mou2_clear(void) {
-    LOG_WRN("mou report cleared");
+    LOG_DBG("mou report cleared");
     memset(&mouse_report_alt.body, 0, sizeof(mouse_report_alt.body));
 }
 
