@@ -42,36 +42,46 @@ struct fwd_to_hid_io_xy_data {
 
 struct behavior_fwd_to_hid_io_data {
     const struct device *dev;
-    struct fwd_to_hid_io_xy_data data;
-    struct fwd_to_hid_io_xy_data wheel_data;
-    uint8_t button_set;
-    uint8_t button_clear;
+    union {
+        struct {
+            struct fwd_to_hid_io_xy_data data;
+            struct fwd_to_hid_io_xy_data wheel_data;
+            uint8_t button_set;
+            uint8_t button_clear;
+        } fwdr;
+    };
 };
 
-static void handle_rel_code(struct behavior_fwd_to_hid_io_data *data, struct input_event *evt) {
+static void handle_rel_code(const struct behavior_fwd_to_hid_io_config *config,
+                            struct behavior_fwd_to_hid_io_data *data, struct input_event *evt) {
     switch (evt->code) {
     case INPUT_REL_X:
-        data->data.mode = HID_IO_JOYSTICK_XY_DATA_MODE_REL;
-        data->data.x += evt->value;
+        data->fwdr.data.mode = HID_IO_JOYSTICK_XY_DATA_MODE_REL;
+        data->fwdr.data.x += evt->value;
         break;
     case INPUT_REL_Y:
-        data->data.mode = HID_IO_JOYSTICK_XY_DATA_MODE_REL;
-        data->data.y += evt->value;
+        data->fwdr.data.mode = HID_IO_JOYSTICK_XY_DATA_MODE_REL;
+        data->fwdr.data.y += evt->value;
         break;
     case INPUT_REL_WHEEL:
-        data->wheel_data.mode = HID_IO_JOYSTICK_XY_DATA_MODE_REL;
-        data->wheel_data.y += evt->value;
+        data->fwdr.wheel_data.mode = HID_IO_JOYSTICK_XY_DATA_MODE_REL;
+        data->fwdr.wheel_data.y += evt->value;
         break;
     case INPUT_REL_HWHEEL:
-        data->wheel_data.mode = HID_IO_JOYSTICK_XY_DATA_MODE_REL;
-        data->wheel_data.x += evt->value;
+        data->fwdr.wheel_data.mode = HID_IO_JOYSTICK_XY_DATA_MODE_REL;
+        data->fwdr.wheel_data.x += evt->value;
         break;
     default:
         break;
     }
 }
 
-static void handle_key_code(struct behavior_fwd_to_hid_io_data *data, struct input_event *evt) {
+static void handle_abs_code(const struct behavior_fwd_to_hid_io_config *config,
+                            struct behavior_fwd_to_hid_io_data *data, struct input_event *evt) {
+}
+
+static void handle_key_code(const struct behavior_fwd_to_hid_io_config *config,
+                            struct behavior_fwd_to_hid_io_data *data, struct input_event *evt) {
     int8_t btn;
 
     switch (evt->code) {
@@ -82,9 +92,9 @@ static void handle_key_code(struct behavior_fwd_to_hid_io_data *data, struct inp
     case INPUT_BTN_4:
         btn = evt->code - INPUT_BTN_0;
         if (evt->value > 0) {
-            WRITE_BIT(data->button_set, btn, 1);
+            WRITE_BIT(data->fwdr.button_set, btn, 1);
         } else {
-            WRITE_BIT(data->button_clear, btn, 1);
+            WRITE_BIT(data->fwdr.button_clear, btn, 1);
         }
         break;
     default:
@@ -103,16 +113,19 @@ static int to_keymap_binding_pressed(struct zmk_behavior_binding *binding,
     const struct device *dev = zmk_behavior_get_binding(binding->behavior_dev);
     struct behavior_fwd_to_hid_io_data *data = 
         (struct behavior_fwd_to_hid_io_data *)dev->data;
-    // const struct behavior_fwd_to_hid_io_config *cfg = dev->config;
+    const struct behavior_fwd_to_hid_io_config *config = dev->config;
     
     struct input_event *evt = (struct input_event *)event.position;
 
     switch (evt->type) {
     case INPUT_EV_REL:
-        handle_rel_code(data, evt);
+        handle_rel_code(config, data, evt);
+        break;
+    case INPUT_EV_ABS:
+        handle_abs_code(config, data, evt);
         break;
     case INPUT_EV_KEY:
-        handle_key_code(data, evt);
+        handle_key_code(config, data, evt);
         break;
     }
 
@@ -121,19 +134,19 @@ static int to_keymap_binding_pressed(struct zmk_behavior_binding *binding,
 #if IS_ENABLED(CONFIG_ZMK_HID_IO)
 
     #if IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
-        if (data->data.mode == HID_IO_JOYSTICK_XY_DATA_MODE_REL) {
+        if (data->fwdr.data.mode == HID_IO_JOYSTICK_XY_DATA_MODE_REL) {
             zmk_hid_joy2_movement_set(data->data.x, data->data.y);
         }
-        if (data->button_set != 0) {
+        if (data->fwdr.button_set != 0) {
             for (int i = 0; i < ZMK_HID_MOUSE_NUM_BUTTONS; i++) {
-                if ((data->button_set & BIT(i)) != 0) {
+                if ((data->fwdr.button_set & BIT(i)) != 0) {
                     zmk_hid_joy2_button_press(i);
                 }
             }
         }
-        if (data->button_clear != 0) {
+        if (data->fwdr.button_clear != 0) {
             for (int i = 0; i < ZMK_HID_MOUSE_NUM_BUTTONS; i++) {
-                if ((data->button_clear & BIT(i)) != 0) {
+                if ((data->fwdr.button_clear & BIT(i)) != 0) {
                     zmk_hid_joy2_button_release(i);
                 }
             }
@@ -143,22 +156,22 @@ static int to_keymap_binding_pressed(struct zmk_behavior_binding *binding,
     #endif
 
     #if IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
-        if (data->wheel_data.mode == HID_IO_JOYSTICK_XY_DATA_MODE_REL) {
-            zmk_hid_mou2_scroll_set(data->wheel_data.x, data->wheel_data.y);
+        if (data->fwdr.wheel_data.mode == HID_IO_JOYSTICK_XY_DATA_MODE_REL) {
+            zmk_hid_mou2_scroll_set(data->fwdr.wheel_data.x, data->fwdr.wheel_data.y);
         }
-        if (data->data.mode == HID_IO_JOYSTICK_XY_DATA_MODE_REL) {
-            zmk_hid_mou2_movement_set(data->data.x, data->data.y);
+        if (data->fwdr.data.mode == HID_IO_JOYSTICK_XY_DATA_MODE_REL) {
+            zmk_hid_mou2_movement_set(data->fwdr.data.x, data->fwdr.data.y);
         }
-        if (data->button_set != 0) {
+        if (data->fwdr.button_set != 0) {
             for (int i = 0; i < ZMK_HID_MOUSE_NUM_BUTTONS; i++) {
-                if ((data->button_set & BIT(i)) != 0) {
+                if ((data->fwdr.button_set & BIT(i)) != 0) {
                     zmk_hid_mou2_button_press(i);
                 }
             }
         }
-        if (data->button_clear != 0) {
+        if (data->fwdr.button_clear != 0) {
             for (int i = 0; i < ZMK_HID_MOUSE_NUM_BUTTONS; i++) {
-                if ((data->button_clear & BIT(i)) != 0) {
+                if ((data->fwdr.button_clear & BIT(i)) != 0) {
                     zmk_hid_mou2_button_release(i);
                 }
             }
@@ -170,10 +183,10 @@ static int to_keymap_binding_pressed(struct zmk_behavior_binding *binding,
 
 #endif
 
-        clear_xy_data(&data->data);
-        clear_xy_data(&data->wheel_data);
+        clear_xy_data(&data->fwdr.data);
+        clear_xy_data(&data->fwdr.wheel_data);
 
-        data->button_set = data->button_clear = 0;
+        data->fwdr.button_set = data->fwdr.button_clear = 0;
     }
 
     return ZMK_BEHAVIOR_OPAQUE;
