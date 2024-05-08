@@ -27,7 +27,10 @@ Now enable the config in your `<shield>.config` file (read the Kconfig file to f
 
 # Zephyr Config
 CONFIG_USB_DEVICE_HID=y
-CONFIG_USB_HID_DEVICE_COUNT=2
+
+# Add one more USB_HID_DEVICE. 
+# Hence, zmk default use 2 HID, HID_0 for keyboard, HID_1 for mouse.
+CONFIG_USB_HID_DEVICE_COUNT=3
 
 # Module Config
 CONFIG_ZMK_HID_IO=y
