@@ -36,7 +36,7 @@ static zmk_mod_flags_t explicit_joy2_btns = 0;
 #define SET_JOYSTICK_BUTTONS(btns)                                                                 \
     {                                                                                              \
         joystick_report_alt.body.buttons = btns;                                                   \
-        LOG_WRN("Mouse buttons set to 0x%02X", joystick_report_alt.body.buttons);                  \
+        LOG_DBG("JOYSTICK Buttons set to 0x%02X", joystick_report_alt.body.buttons);                        \
     }
 
 int zmk_hid_joy2_button_press(zmk_joystick_button_t button) {
@@ -45,7 +45,7 @@ int zmk_hid_joy2_button_press(zmk_joystick_button_t button) {
     }
 
     explicit_joy2_btn_counts[button]++;
-    LOG_WRN("Button %d count %d", button, explicit_joy2_btn_counts[button]);
+    LOG_DBG("JOYSTICK Button %d count %d", button, explicit_joy2_btn_counts[button]);
     WRITE_BIT(explicit_joy2_btns, button, true);
     SET_JOYSTICK_BUTTONS(explicit_joy2_btns);
     return 0;
@@ -57,13 +57,13 @@ int zmk_hid_joy2_button_release(zmk_joystick_button_t button) {
     }
 
     if (explicit_joy2_btn_counts[button] <= 0) {
-        LOG_ERR("Tried to release button %d too often", button);
+        LOG_ERR("Tried to release JOYSTICK button %d too often", button);
         return -EINVAL;
     }
     explicit_joy2_btn_counts[button]--;
-    LOG_WRN("Button %d count: %d", button, explicit_joy2_btn_counts[button]);
+    LOG_DBG("JOYSTICK Button %d count: %d", button, explicit_joy2_btn_counts[button]);
     if (explicit_joy2_btn_counts[button] == 0) {
-        LOG_WRN("Button %d released", button);
+        LOG_DBG("JOYSTICK Button %d released", button);
         WRITE_BIT(explicit_joy2_btns, button, false);
     }
     SET_JOYSTICK_BUTTONS(explicit_joy2_btns);
@@ -91,31 +91,31 @@ int zmk_hid_joy2_buttons_release(zmk_joystick_button_flags_t buttons) {
 void zmk_hid_joy2_movement_set(int16_t x, int16_t y) {
     joystick_report_alt.body.d_x = x;
     joystick_report_alt.body.d_y = y;
-    LOG_WRN("joy mov set to %d/%d", joystick_report_alt.body.d_x, joystick_report_alt.body.d_y);
+    LOG_DBG("joy mov set to %d/%d", joystick_report_alt.body.d_x, joystick_report_alt.body.d_y);
 }
 
 void zmk_hid_joy2_movement_update(int16_t x, int16_t y) {
     joystick_report_alt.body.d_x += x;
     joystick_report_alt.body.d_y += y;
-    LOG_WRN("joy mov updated to %d/%d", joystick_report_alt.body.d_x, joystick_report_alt.body.d_y);
+    LOG_DBG("joy mov updated to %d/%d", joystick_report_alt.body.d_x, joystick_report_alt.body.d_y);
 }
 
 // void zmk_hid_joy2_scroll_set(int8_t x, int8_t y) {
 //     joystick_report_alt.body.d_scroll_x = x;
 //     joystick_report_alt.body.d_scroll_y = y;
-//     LOG_WRN("joy scl set to %d/%d", joystick_report_alt.body.d_scroll_x,
+//     LOG_DBG("joy scl set to %d/%d", joystick_report_alt.body.d_scroll_x,
 //             joystick_report_alt.body.d_scroll_y);
 // }
 
 // void zmk_hid_joy2_scroll_update(int8_t x, int8_t y) {
 //     joystick_report_alt.body.d_scroll_x += x;
 //     joystick_report_alt.body.d_scroll_y += y;
-//     LOG_WRN("joy scl updated to X: %d/%d", joystick_report_alt.body.d_scroll_x,
+//     LOG_DBG("joy scl updated to X: %d/%d", joystick_report_alt.body.d_scroll_x,
 //             joystick_report_alt.body.d_scroll_y);
 // }
 
 void zmk_hid_joy2_clear(void) {
-    LOG_WRN("joy report cleared");
+    LOG_DBG("joy report cleared");
     memset(&joystick_report_alt.body, 0, sizeof(joystick_report_alt.body));
 }
 
@@ -139,7 +139,7 @@ static zmk_mod_flags_t explicit_mou2_btns = 0;
 #define SET_MOUSE_BUTTONS(btns)                                                                    \
     {                                                                                              \
         mouse_report_alt.body.buttons = btns;                                                          \
-        LOG_WRN("Mouse buttons set to 0x%02X", mouse_report_alt.body.buttons);                         \
+        LOG_DBG("MOUSE buttons set to 0x%02X", mouse_report_alt.body.buttons);                         \
     }
 
 int zmk_hid_mou2_button_press(zmk_mouse_button_t button) {
@@ -148,7 +148,7 @@ int zmk_hid_mou2_button_press(zmk_mouse_button_t button) {
     }
 
     explicit_mou2_btn_counts[button]++;
-    LOG_WRN("Button %d count %d", button, explicit_mou2_btn_counts[button]);
+    LOG_DBG("MOUSE Button %d count %d", button, explicit_mou2_btn_counts[button]);
     WRITE_BIT(explicit_mou2_btns, button, true);
     SET_MOUSE_BUTTONS(explicit_mou2_btns);
     return 0;
@@ -160,13 +160,13 @@ int zmk_hid_mou2_button_release(zmk_mouse_button_t button) {
     }
 
     if (explicit_mou2_btn_counts[button] <= 0) {
-        LOG_ERR("Tried to release button %d too often", button);
+        LOG_ERR("Tried to release MOUSE button %d too often", button);
         return -EINVAL;
     }
     explicit_mou2_btn_counts[button]--;
-    LOG_WRN("Button %d count: %d", button, explicit_mou2_btn_counts[button]);
+    LOG_DBG("MOUSE Button %d count: %d", button, explicit_mou2_btn_counts[button]);
     if (explicit_mou2_btn_counts[button] == 0) {
-        LOG_WRN("Button %d released", button);
+        LOG_DBG("MOUSE Button %d released", button);
         WRITE_BIT(explicit_mou2_btns, button, false);
     }
     SET_MOUSE_BUTTONS(explicit_mou2_btns);
@@ -236,7 +236,7 @@ K_MSGQ_DEFINE(hid_io_output_event_msgq, sizeof(struct hid_io_output_event),
 void hid_io_output_event_work_callback(struct k_work *work) {
     struct hid_io_output_event ev;
     while (k_msgq_get(&hid_io_output_event_msgq, &ev, K_NO_WAIT) == 0) {
-        LOG_WRN("Trigger output event: f/%d  d/%d", ev.force, ev.duration);
+        LOG_DBG("Trigger output event: f/%d  d/%d", ev.force, ev.duration);
 
         #if IS_ENABLED(CONFIG_ZMK_OUTPUT_BEHAVIOR_LISTENER)
         raise_zmk_output_event((struct zmk_output_event){

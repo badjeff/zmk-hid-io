@@ -41,9 +41,10 @@ static int get_report_cb(const struct device *dev, struct usb_setup_packet *setu
      * 7.2.1 of the HID v1.11 spec is unclear about handling requests for reports that do not exist
      * For requested reports that aren't input reports, return -ENOTSUP like the Zephyr subsys does
      */
-    if ((setup->wValue & HID_GET_REPORT_TYPE_MASK) != HID_REPORT_TYPE_INPUT) {
-        LOG_ERR("Unsupported report type %d requested", (setup->wValue & HID_GET_REPORT_TYPE_MASK)
-                                                            << 8);
+    if ((setup->wValue & HID_GET_REPORT_TYPE_MASK) != HID_REPORT_TYPE_INPUT &&
+        (setup->wValue & HID_GET_REPORT_TYPE_MASK) != HID_REPORT_TYPE_FEATURE) {
+        LOG_ERR("[# hid-io #] Get: Unsupported report type %d requested",
+                (setup->wValue & HID_GET_REPORT_TYPE_MASK) << 8);
         return -ENOTSUP;
     }
 
@@ -74,8 +75,9 @@ static int get_report_cb(const struct device *dev, struct usb_setup_packet *setu
 
 static int set_report_cb(const struct device *dev, struct usb_setup_packet *setup, int32_t *len,
                          uint8_t **data) {
-    if ((setup->wValue & HID_GET_REPORT_TYPE_MASK) != HID_REPORT_TYPE_OUTPUT) {
-        LOG_ERR("Unsupported report type %d requested",
+    if ((setup->wValue & HID_GET_REPORT_TYPE_MASK) != HID_REPORT_TYPE_OUTPUT &&
+        (setup->wValue & HID_GET_REPORT_TYPE_MASK) != HID_REPORT_TYPE_FEATURE) {
+        LOG_ERR("[# hid-io #] Set: Unsupported report type %d requested",
                 (setup->wValue & HID_GET_REPORT_TYPE_MASK) >> 8);
         return -ENOTSUP;
     }
@@ -84,7 +86,7 @@ static int set_report_cb(const struct device *dev, struct usb_setup_packet *setu
 #if IS_ENABLED(CONFIG_ZMK_HID_IO_OUTPUT)
     case ZMK_HID_REPORT_ID__IO_OUTPUT:
         if (*len != sizeof(struct zmk_hid_io_output_report)) {
-            LOG_ERR("HAPTIC set report is malformed: length=%d", *len);
+            LOG_ERR("[# hid-io #] HAPTIC set report is malformed: length=%d", *len);
             return -EINVAL;
         } else {
             struct zmk_hid_io_output_report *report = (struct zmk_hid_io_output_report *)*data;
@@ -96,7 +98,7 @@ static int set_report_cb(const struct device *dev, struct usb_setup_packet *setu
         break;
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_OUTPUT)
     default:
-        LOG_ERR("## Invalid report ID %d requested", setup->wValue & HID_GET_REPORT_ID_MASK);
+        LOG_ERR("[# hid-io #] ## Invalid report ID %d requested", setup->wValue & HID_GET_REPORT_ID_MASK);
         return -EINVAL;
     }
 
@@ -120,6 +122,7 @@ static int zmk_usb_hid_send_report_alt(const uint8_t *report, size_t len) {
         return -ENODEV;
     default:
         k_sem_take(&hid_sem, K_MSEC(30));
+        LOG_HEXDUMP_DBG(report, len, "HID-IO HID report");
         int err = hid_int_ep_write(hid_dev, report, len, NULL);
 
         if (err) {

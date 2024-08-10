@@ -1,0 +1,8 @@
+/ {
+    behaviors {
+        /omit-if-no-ref/ hidiokp: hid_io_key_press {
+            compatible = "zmk,behavior-hid-io-key-press";
+            #binding-cells = <1>;
+        };
+    };
+};

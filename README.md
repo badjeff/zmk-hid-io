@@ -99,10 +99,28 @@ ZMK modules that used and should add to your `config/west.yml` for below `shield
                 #binding-cells = <0>;
         };
 
+        /* Setup joystick key press behavior and listener */
+        /* listerer shall forward to JOYSTICK usage page if CONFIG_ZMK_HID_IO_JOYSTICK enabling */
+        hidiokp: hid_io_key_press {
+            compatible = "zmk,behavior-hid-io-key-press";
+            #binding-cells = <1>;
+        };
+	hidiokp_ibl {
+		compatible = "zmk,input-behavior-listener";
+		device = <&hidiokp>;
+		layers = <DEFAULT>;
+                bindings = <&ib_fwd_to_hid_io>;
+	};
+
         keymap {
                 compatible = "zmk,keymap";
                 DEF_layer {
-                        bindings = < .... ... >;
+                        bindings = < .... 
+                        
+                        &hidiokp 0 /* joystick 1st button */
+                        &hidiokp 0 /* joystick 2nd button */
+
+                        ... >;
                 };
        };
 

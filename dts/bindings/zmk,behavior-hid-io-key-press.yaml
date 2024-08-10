@@ -1,0 +1,5 @@
+description: HID IO key press behavior
+
+compatible: "zmk,behavior-hid-io-key-press"
+
+include: one_param.yaml

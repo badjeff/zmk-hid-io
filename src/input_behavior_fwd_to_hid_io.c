@@ -135,17 +135,17 @@ static int to_keymap_binding_pressed(struct zmk_behavior_binding *binding,
 
     #if IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
         if (data->fwdr.data.mode == HID_IO_JOYSTICK_XY_DATA_MODE_REL) {
-            zmk_hid_joy2_movement_set(data->data.x, data->data.y);
+            zmk_hid_joy2_movement_set(data->fwdr.data.x, data->fwdr.data.y);
         }
         if (data->fwdr.button_set != 0) {
-            for (int i = 0; i < ZMK_HID_MOUSE_NUM_BUTTONS; i++) {
+            for (int i = 0; i < ZMK_HID_JOYSTICK_NUM_BUTTONS; i++) {
                 if ((data->fwdr.button_set & BIT(i)) != 0) {
                     zmk_hid_joy2_button_press(i);
                 }
             }
         }
         if (data->fwdr.button_clear != 0) {
-            for (int i = 0; i < ZMK_HID_MOUSE_NUM_BUTTONS; i++) {
+            for (int i = 0; i < ZMK_HID_JOYSTICK_NUM_BUTTONS; i++) {
                 if ((data->fwdr.button_clear & BIT(i)) != 0) {
                     zmk_hid_joy2_button_release(i);
                 }
@@ -200,6 +200,7 @@ static int input_behavior_to_init(const struct device *dev) {
 
 static const struct behavior_driver_api behavior_fwd_to_hid_io_driver_api = {
     .binding_pressed = to_keymap_binding_pressed,
+    .binding_released = to_keymap_binding_pressed,
 };
 
 #define KP_INST(n)                                                                         \
