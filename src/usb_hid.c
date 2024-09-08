@@ -148,7 +148,7 @@ int zmk_usb_hid_send_mouse_report_alt() {
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
 
 static int zmk_usb_hid_init_alt(void) {
-    hid_dev = device_get_binding("HID_2");
+    hid_dev = device_get_binding("HID_1");
     if (hid_dev == NULL) {
         LOG_ERR("Unable to locate HID device");
         return -EINVAL;

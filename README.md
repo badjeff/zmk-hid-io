@@ -35,13 +35,13 @@ CONFIG_USB_HID_DEVICE_COUNT=3
 # Module Config
 CONFIG_ZMK_HID_IO=y
 
-# Enable hid joystick, to recognized as a jotstick/gamepad from host
+# Enable hid joystick
 CONFIG_ZMK_HID_IO_JOYSTICK=y
 
-# Enable hid mouse, to recognized as a mouse from host
+# Enable hid mouse
 CONFIG_ZMK_HID_IO_MOUSE=y
 
-# Enable hid haptic feedback, to accept HID Output from host. See https://github.com/badjeff/zmk-haptic-tester-macos
+# Enable hid haptic feedback
 CONFIG_ZMK_HID_IO_OUTPUT=y
 
 # Enable logging
@@ -64,6 +64,9 @@ ZMK modules that used and should add to your `config/west.yml` for below `shield
 
 // index of keymap layers
 #define DEF 0 // default layer
+
+#define HID_IO_USAGE_FWD_TO_MOUSE 1
+#define HID_IO_USAGE_FWD_TO_JOYSTICK 2
 
 / {
         /* input config for mouse move mode on default layer (DEF & MSK) */
@@ -92,11 +95,12 @@ ZMK modules that used and should add to your `config/west.yml` for below `shield
         };
 
         /* Setup behavior to intecept input and forward to new usage page  */
-        /* Use CONFIG_ZMK_HID_IO_JOYSTICK or CONFIG_ZMK_HID_IO_MOUSE to switch usage in HID Descriptor */
-        /* Or, build your own HID Descriptor */
+        /* via hid-io-module, or build your own HID Descriptor */
         ib_fwd_to_hid_io: ib_forward_fwd_to_hid_io {
                 compatible = "zmk,input-behavior-fwd-to-hid-io";
                 #binding-cells = <0>;
+                /* route the input as joystick report */
+                usage = <HID_IO_USAGE_FWD_TO_JOYSTICK>;
         };
 
         /* Setup joystick key press behavior and listener */

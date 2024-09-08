@@ -25,7 +25,15 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 // #if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
 
+enum hid_io_usage {
+    HID_IO_USAGE__MIN__ = 0,
+    HID_IO_USAGE_FWD_TO_MOUSE,
+    HID_IO_USAGE_FWD_TO_JOYSTICK,
+    HID_IO_USAGE__MAX__,
+};
+
 struct behavior_fwd_to_hid_io_config {
+    enum hid_io_usage usage;
 };
 
 enum fwd_to_hid_io_xy_data_mode {
@@ -134,51 +142,55 @@ static int to_keymap_binding_pressed(struct zmk_behavior_binding *binding,
 #if IS_ENABLED(CONFIG_ZMK_HID_IO)
 
     #if IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
-        if (data->fwdr.data.mode == HID_IO_XY_DATA_MODE_REL) {
-            zmk_hid_joy2_movement_set(data->fwdr.data.x, data->fwdr.data.y);
-        }
-        if (data->fwdr.button_set != 0) {
-            for (int i = 0; i < ZMK_HID_JOYSTICK_NUM_BUTTONS; i++) {
-                if ((data->fwdr.button_set & BIT(i)) != 0) {
-                    zmk_hid_joy2_button_press(i);
+        if (config->usage == HID_IO_USAGE_FWD_TO_JOYSTICK) {
+            if (data->fwdr.data.mode == HID_IO_XY_DATA_MODE_REL) {
+                zmk_hid_joy2_movement_set(data->fwdr.data.x, data->fwdr.data.y);
+            }
+            if (data->fwdr.button_set != 0) {
+                for (int i = 0; i < ZMK_HID_JOYSTICK_NUM_BUTTONS; i++) {
+                    if ((data->fwdr.button_set & BIT(i)) != 0) {
+                        zmk_hid_joy2_button_press(i);
+                    }
                 }
             }
-        }
-        if (data->fwdr.button_clear != 0) {
-            for (int i = 0; i < ZMK_HID_JOYSTICK_NUM_BUTTONS; i++) {
-                if ((data->fwdr.button_clear & BIT(i)) != 0) {
-                    zmk_hid_joy2_button_release(i);
+            if (data->fwdr.button_clear != 0) {
+                for (int i = 0; i < ZMK_HID_JOYSTICK_NUM_BUTTONS; i++) {
+                    if ((data->fwdr.button_clear & BIT(i)) != 0) {
+                        zmk_hid_joy2_button_release(i);
+                    }
                 }
             }
+            zmk_endpoints_send_joystick_report_alt();
+            zmk_hid_joy2_movement_set(0, 0);
         }
-        zmk_endpoints_send_joystick_report_alt();
-        zmk_hid_joy2_movement_set(0, 0);
     #endif
 
     #if IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
-        if (data->fwdr.wheel_data.mode == HID_IO_XY_DATA_MODE_REL) {
-            zmk_hid_mou2_scroll_set(data->fwdr.wheel_data.x, data->fwdr.wheel_data.y);
-        }
-        if (data->fwdr.data.mode == HID_IO_XY_DATA_MODE_REL) {
-            zmk_hid_mou2_movement_set(data->fwdr.data.x, data->fwdr.data.y);
-        }
-        if (data->fwdr.button_set != 0) {
-            for (int i = 0; i < ZMK_HID_MOUSE_NUM_BUTTONS; i++) {
-                if ((data->fwdr.button_set & BIT(i)) != 0) {
-                    zmk_hid_mou2_button_press(i);
+        if (config->usage == HID_IO_USAGE_FWD_TO_MOUSE) {
+            if (data->fwdr.wheel_data.mode == HID_IO_XY_DATA_MODE_REL) {
+                zmk_hid_mou2_scroll_set(data->fwdr.wheel_data.x, data->fwdr.wheel_data.y);
+            }
+            if (data->fwdr.data.mode == HID_IO_XY_DATA_MODE_REL) {
+                zmk_hid_mou2_movement_set(data->fwdr.data.x, data->fwdr.data.y);
+            }
+            if (data->fwdr.button_set != 0) {
+                for (int i = 0; i < ZMK_HID_MOUSE_NUM_BUTTONS; i++) {
+                    if ((data->fwdr.button_set & BIT(i)) != 0) {
+                        zmk_hid_mou2_button_press(i);
+                    }
                 }
             }
-        }
-        if (data->fwdr.button_clear != 0) {
-            for (int i = 0; i < ZMK_HID_MOUSE_NUM_BUTTONS; i++) {
-                if ((data->fwdr.button_clear & BIT(i)) != 0) {
-                    zmk_hid_mou2_button_release(i);
+            if (data->fwdr.button_clear != 0) {
+                for (int i = 0; i < ZMK_HID_MOUSE_NUM_BUTTONS; i++) {
+                    if ((data->fwdr.button_clear & BIT(i)) != 0) {
+                        zmk_hid_mou2_button_release(i);
+                    }
                 }
             }
+            zmk_endpoints_send_mouse_report_alt();
+            zmk_hid_mou2_scroll_set(0, 0);
+            zmk_hid_mou2_movement_set(0, 0);
         }
-        zmk_endpoints_send_mouse_report_alt();
-        zmk_hid_mou2_scroll_set(0, 0);
-        zmk_hid_mou2_movement_set(0, 0);
     #endif
 
 #endif
@@ -206,6 +218,7 @@ static const struct behavior_driver_api behavior_fwd_to_hid_io_driver_api = {
 #define KP_INST(n)                                                                         \
     static struct behavior_fwd_to_hid_io_data behavior_fwd_to_hid_io_data_##n = {};        \
     static struct behavior_fwd_to_hid_io_config behavior_fwd_to_hid_io_config_##n = {      \
+        .usage = DT_INST_PROP(n, usage),                                                   \
     };                                                                                     \
     BEHAVIOR_DT_INST_DEFINE(n, input_behavior_to_init, NULL,                               \
                             &behavior_fwd_to_hid_io_data_##n,                              \
