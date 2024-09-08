@@ -170,6 +170,7 @@ BT_GATT_SERVICE_DEFINE(
                            read_hids_report_map, NULL, NULL),
 
 #if IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
+#define BT_GATT_CHARACTERISTIC__HID_IO_JOYSTICK__INDEX_OFFSET 5
     BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
                            BT_GATT_PERM_READ_ENCRYPT, read_hids_joystick_input_report, NULL, NULL),
     BT_GATT_CCC(input_ccc_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
@@ -178,6 +179,7 @@ BT_GATT_SERVICE_DEFINE(
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
 
 #if IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
+#define BT_GATT_CHARACTERISTIC__HID_IO_MOUSE__INDEX_OFFSET 5
     BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
                            BT_GATT_PERM_READ_ENCRYPT, read_hids_mouse_input_report, NULL, NULL),
     BT_GATT_CCC(input_ccc_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
@@ -230,10 +232,7 @@ void send_joystick_report_alt_callback(struct k_work *work) {
         }
 
         struct bt_gatt_notify_params notify_params = {
-            
-            .attr = &hog_svc_alt.attrs[5],
-            // .attr = &hog_svc_alt.attrs[9],
-
+            .attr = &hog_svc_alt.attrs[ BT_GATT_CHARACTERISTIC__HID_IO_JOYSTICK__INDEX_OFFSET ],
             .data = &report,
             .len = sizeof(report),
         };
@@ -287,10 +286,7 @@ void send_mouse_report_alt_callback(struct k_work *work) {
         }
 
         struct bt_gatt_notify_params notify_params = {
-            
-            .attr = &hog_svc_alt.attrs[5],
-            // .attr = &hog_svc_alt.attrs[9],
-
+            .attr = &hog_svc_alt.attrs[ BT_GATT_CHARACTERISTIC__HID_IO_MOUSE__INDEX_OFFSET ],
             .data = &report,
             .len = sizeof(report),
         };
