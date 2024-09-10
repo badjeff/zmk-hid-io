@@ -44,12 +44,16 @@
     HID_ITEM(HID_ITEM_TAG_USAGE_PAGE, HID_ITEM_TYPE_GLOBAL, 2), page, page2
 #endif
 
-// Needed until Zephyr offers a 2 byte usage macro
-#define HID_USAGE16(idx)                                                                           \
-    HID_ITEM(HID_ITEM_TAG_USAGE, HID_ITEM_TYPE_LOCAL, 2), (idx & 0xFF), (idx >> 8 & 0xFF)
+#define HID_USAGE16(a, b) HID_ITEM(HID_ITEM_TAG_USAGE, HID_ITEM_TYPE_LOCAL, 2), a, b
+
+#define HID_USAGE16_SINGLE(a) HID_USAGE16((a & 0xFF), ((a >> 8) & 0xFF))
 
 static const uint8_t zmk_hid_report_desc_alt[] = {
     
+    // HID_USAGE_PAGE(HID_USAGE_GEN_DESKTOP),
+    // HID_USAGE(HID_USAGE_GD_KEYBOARD),
+    // HID_COLLECTION(HID_COLLECTION_APPLICATION),
+
     HID_USAGE_PAGE16(0x0C, 0xFF),
     HID_USAGE(0x01),
     HID_COLLECTION(HID_COLLECTION_APPLICATION),
@@ -108,15 +112,15 @@ static const uint8_t zmk_hid_report_desc_alt[] = {
     HID_USAGE(HID_USAGE_GD_X),
     HID_USAGE(HID_USAGE_GD_Y),
     HID_USAGE(HID_USAGE_GD_WHEEL),
-    HID_LOGICAL_MIN8(-0x7F),
-    HID_LOGICAL_MAX8(0x7F),
-    HID_REPORT_SIZE(0x08),
+    HID_LOGICAL_MIN16(0xFF, -0x7F),
+    HID_LOGICAL_MAX16(0xFF, 0x7F),
+    HID_REPORT_SIZE(0x10),
     HID_REPORT_COUNT(0x03),
     HID_INPUT(ZMK_HID_MAIN_VAL_DATA | ZMK_HID_MAIN_VAL_VAR | ZMK_HID_MAIN_VAL_REL),
     HID_USAGE_PAGE(HID_USAGE_CONSUMER),
-    HID_USAGE16(HID_USAGE_CONSUMER_AC_PAN),
-    HID_LOGICAL_MIN8(-0x7F),
-    HID_LOGICAL_MAX8(0x7F),
+    HID_USAGE16_SINGLE(HID_USAGE_CONSUMER_AC_PAN),
+    HID_LOGICAL_MIN16(0xFF, -0x7F),
+    HID_LOGICAL_MAX16(0xFF, 0x7F),
     HID_REPORT_SIZE(0x08),
     HID_REPORT_COUNT(0x01),
     HID_INPUT(ZMK_HID_MAIN_VAL_DATA | ZMK_HID_MAIN_VAL_VAR | ZMK_HID_MAIN_VAL_REL),
@@ -165,10 +169,10 @@ struct zmk_hid_joystick_report_alt *zmk_hid_get_joystick_report_alt();
 #if IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
 struct zmk_hid_mouse_report_body_alt {
     zmk_mouse_button_flags_t buttons;
-    int8_t d_x;
-    int8_t d_y;
-    int8_t d_scroll_y;
-    int8_t d_scroll_x;
+    int16_t d_x;
+    int16_t d_y;
+    int16_t d_scroll_y;
+    int16_t d_scroll_x;
 } __packed;
 struct zmk_hid_mouse_report_alt {
     uint8_t report_id;
@@ -179,9 +183,9 @@ int zmk_hid_mou2_button_release(zmk_mouse_button_t button);
 int zmk_hid_mou2_buttons_press(zmk_mouse_button_flags_t buttons);
 int zmk_hid_mou2_buttons_release(zmk_mouse_button_flags_t buttons);
 void zmk_hid_mou2_movement_set(int16_t x, int16_t y);
-void zmk_hid_mou2_scroll_set(int8_t x, int8_t y);
+void zmk_hid_mou2_scroll_set(int16_t x, int16_t y);
 void zmk_hid_mou2_movement_update(int16_t x, int16_t y);
-void zmk_hid_mou2_scroll_update(int8_t x, int8_t y);
+void zmk_hid_mou2_scroll_update(int16_t x, int16_t y);
 void zmk_hid_mou2_clear(void);
 struct zmk_hid_mouse_report_alt *zmk_hid_get_mouse_report_alt();
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)

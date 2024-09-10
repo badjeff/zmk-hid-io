@@ -129,7 +129,7 @@ struct zmk_hid_joystick_report_alt *zmk_hid_get_joystick_report_alt(void) {
 
 static struct zmk_hid_mouse_report_alt mouse_report_alt = {
     .report_id = ZMK_HID_REPORT_ID__IO_MOUSE,
-    .body = {.buttons = 0, .d_x = 0, .d_y = 0, .d_scroll_y = 0, .d_scroll_y = 0 }};
+    .body = {.buttons = 0, .d_x = 0, .d_y = 0, .d_scroll_y = 0, .d_scroll_x = 0 }};
 
 // Keep track of how often a button was pressed.
 // Only release the button if the count is 0.
@@ -203,14 +203,14 @@ void zmk_hid_mou2_movement_update(int16_t x, int16_t y) {
     LOG_DBG("mou mov updated to %d/%d", mouse_report_alt.body.d_x, mouse_report_alt.body.d_y);
 }
 
-void zmk_hid_mou2_scroll_set(int8_t x, int8_t y) {
+void zmk_hid_mou2_scroll_set(int16_t x, int16_t y) {
     mouse_report_alt.body.d_scroll_x = x;
     mouse_report_alt.body.d_scroll_y = y;
     LOG_DBG("mou scl set to %d/%d", mouse_report_alt.body.d_scroll_x,
             mouse_report_alt.body.d_scroll_y);
 }
 
-void zmk_hid_mou2_scroll_update(int8_t x, int8_t y) {
+void zmk_hid_mou2_scroll_update(int16_t x, int16_t y) {
     mouse_report_alt.body.d_scroll_x += x;
     mouse_report_alt.body.d_scroll_y += y;
     LOG_DBG("mou scl updated to X: %d/%d", mouse_report_alt.body.d_scroll_x,
