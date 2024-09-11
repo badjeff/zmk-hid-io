@@ -75,6 +75,15 @@ static struct hids_report mouse_input = {
 
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
 
+#if IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+
+static struct hids_report volume_knob_input = {
+    .id = ZMK_HID_REPORT_ID__IO_VOLUME_KNOB,
+    .type = HIDS_INPUT,
+};
+
+#endif // IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+
 static bool host_requests_notification = false;
 static uint8_t ctrl_point;
 // static uint8_t proto_mode;
@@ -146,6 +155,16 @@ static ssize_t read_hids_mouse_input_report(struct bt_conn *conn, const struct b
 }
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
 
+#if IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+size_t bt_gatt_char_offset_volume_knob = 0;
+static ssize_t read_hids_volume_knob_input_report(struct bt_conn *conn, const struct bt_gatt_attr *attr,
+                                                  void *buf, uint16_t len, uint16_t offset) {
+    struct zmk_hid_volume_knob_report_body_alt *report_body = &zmk_hid_get_volume_knob_report_alt()->body;
+    return bt_gatt_attr_read(conn, attr, buf, len, offset, report_body,
+                             sizeof(struct zmk_hid_volume_knob_report_body_alt));
+}
+#endif // IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+
 static void input_ccc_changed(const struct bt_gatt_attr *attr, uint16_t value) {
     host_requests_notification = (value == BT_GATT_CCC_NOTIFY) ? 1 : 0;
 }
@@ -195,6 +214,14 @@ BT_GATT_SERVICE_DEFINE(
     BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ_ENCRYPT, read_hids_report_ref,
                        NULL, &output_indicators),
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_OUTPUT)
+
+#if IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
+                           BT_GATT_PERM_READ_ENCRYPT, read_hids_volume_knob_input_report, NULL, NULL),
+    BT_GATT_CCC(input_ccc_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
+    BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ_ENCRYPT, read_hids_report_ref,
+                       NULL, &volume_knob_input),
+#endif // IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
 
     BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_CTRL_POINT, BT_GATT_CHRC_WRITE_WITHOUT_RESP,
                            BT_GATT_PERM_WRITE, NULL, write_ctrl_point, &ctrl_point));
@@ -326,12 +353,65 @@ int zmk_hog_send_mouse_report_alt(struct zmk_hid_mouse_report_body_alt *report) 
 };
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
 
+#if IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+
+K_MSGQ_DEFINE(zmk_hog_volume_knob_alt_msgq, sizeof(struct zmk_hid_volume_knob_report_body_alt),
+              CONFIG_ZMK_HID_IO_BLE_VOLUME_KNOB_REPORT_QUEUE_SIZE, 4);
+
+void send_volume_knob_report_alt_callback(struct k_work *work) {
+    struct zmk_hid_volume_knob_report_body_alt report;
+    while (k_msgq_get(&zmk_hog_volume_knob_alt_msgq, &report, K_NO_WAIT) == 0) {
+        struct bt_conn *conn = destination_connection_alt();
+        if (conn == NULL) {
+            return;
+        }
+
+        struct bt_gatt_notify_params notify_params = {
+            .attr = &hog_svc_alt.attrs[ bt_gatt_char_offset_volume_knob ],
+            .data = &report,
+            .len = sizeof(report),
+        };
+
+        int err = bt_gatt_notify_cb(conn, &notify_params);
+        if (err == -EPERM) {
+            bt_conn_set_security(conn, BT_SECURITY_L2);
+        } else if (err) {
+            LOG_DBG("Error notifying %d", err);
+        }
+
+        bt_conn_unref(conn);
+    }
+};
+
+K_WORK_DEFINE(hog_alt_volume_knob_work, send_volume_knob_report_alt_callback);
+
+int zmk_hog_send_volume_knob_report_alt(struct zmk_hid_volume_knob_report_body_alt *report) {
+    int err = k_msgq_put(&zmk_hog_volume_knob_alt_msgq, report, K_MSEC(100));
+    if (err) {
+        switch (err) {
+        case -EAGAIN: {
+            LOG_WRN("volume_knob message queue full, popping first message and queueing again");
+            struct zmk_hid_volume_knob_report_body_alt discarded_report;
+            k_msgq_get(&zmk_hog_volume_knob_alt_msgq, &discarded_report, K_NO_WAIT);
+            return zmk_hog_send_volume_knob_report_alt(report);
+        }
+        default:
+            LOG_WRN("Failed to queue volume_knob report to send (%d)", err);
+            return err;
+        }
+    }
+
+    k_work_submit_to_queue(&hog_alt_work_q, &hog_alt_volume_knob_work);
+
+    return 0;
+};
+#endif // IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+
 static int zmk_hog_init(void) {
 
     for (size_t i = 0; i < hog_svc_alt.attr_count; i++) {
-
         // scan the cb from output of BT_GATT_CHARACTERISTIC() macros,
-        // the output 2 elements into attrs array, so we minus one the offset.
+        // each output inserts 2 elements into attrs array, so we minus one the offset.
 
 #if IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
         if (hog_svc_alt.attrs[i].read == read_hids_joystick_input_report) {
@@ -342,7 +422,12 @@ static int zmk_hog_init(void) {
 #if IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
         if (hog_svc_alt.attrs[i].read == read_hids_mouse_input_report) {
             bt_gatt_char_offset_mouse = i - 1;
-            // note: BT_GATT_CHARACTERISTIC() macros two elements, -1 for the 1st item.
+        }
+#endif
+
+#if IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+        if (hog_svc_alt.attrs[i].read == read_hids_volume_knob_input_report) {
+            bt_gatt_char_offset_volume_knob = i - 1;
         }
 #endif
 

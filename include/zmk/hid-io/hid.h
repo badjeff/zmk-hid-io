@@ -15,29 +15,32 @@
 
 #if IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
 #include <zmk/hid-io/joystick.h>
+#include <zmk/hid-io/hid_joystick.h>
+#define ZMK_HID_JOYSTICK_NUM_BUTTONS 0x08
+#define ZMK_HID_REPORT_ID__IO_JOYSTICK 0x02
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
 
 #if IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
 #include <zmk/hid-io/mouse.h>
+#include <zmk/hid-io/hid_mouse.h>
+#define ZMK_HID_MOUSE_NUM_BUTTONS 0x05
+#define ZMK_HID_REPORT_ID__IO_MOUSE 0x03
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
+
+#if IS_ENABLED(CONFIG_ZMK_HID_IO_OUTPUT)
+#include <zmk/hid-io/hid_output.h>
+#define ZMK_HID_REPORT_ID__IO_OUTPUT 0x04
+#endif // IS_ENABLED(CONFIG_ZMK_HID_IO_OUTPUT)
+
+#if IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+#include <zmk/hid-io/hid_volume_knob.h>
+#define ZMK_HID_REPORT_ID__IO_VOLUME_KNOB 0x05
+#endif // IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
 
 #include <dt-bindings/zmk/hid_usage.h>
 #include <dt-bindings/zmk/hid_usage_pages.h>
 
-#if IS_ENABLED(CONFIG_ZMK_HID_KEYBOARD_NKRO_EXTENDED_REPORT)
-#define ZMK_HID_KEYBOARD_NKRO_MAX_USAGE HID_USAGE_KEY_KEYBOARD_LANG8
-#else
-#define ZMK_HID_KEYBOARD_NKRO_MAX_USAGE HID_USAGE_KEY_KEYPAD_EQUAL
-#endif
-
-#define ZMK_HID_JOYSTICK_NUM_BUTTONS 0x08
-#define ZMK_HID_MOUSE_NUM_BUTTONS 0x05
-
 // See https://www.usb.org/sites/default/files/hid1_11.pdf section 6.2.2.4 Main Items
-
-#define ZMK_HID_REPORT_ID__IO_JOYSTICK 0x02
-#define ZMK_HID_REPORT_ID__IO_MOUSE 0x03
-#define ZMK_HID_REPORT_ID__IO_OUTPUT 0x04
 
 #ifndef HID_USAGE_PAGE16
 #define HID_USAGE_PAGE16(page, page2)                                                              \
@@ -50,13 +53,9 @@
 
 static const uint8_t zmk_hid_report_desc_alt[] = {
     
-    // HID_USAGE_PAGE(HID_USAGE_GEN_DESKTOP),
-    // HID_USAGE(HID_USAGE_GD_KEYBOARD),
+    // HID_USAGE_PAGE16(0x0C, 0xFF),
+    // HID_USAGE(0x01),
     // HID_COLLECTION(HID_COLLECTION_APPLICATION),
-
-    HID_USAGE_PAGE16(0x0C, 0xFF),
-    HID_USAGE(0x01),
-    HID_COLLECTION(HID_COLLECTION_APPLICATION),
 
 #if IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
     HID_USAGE_PAGE(HID_USAGE_GD),
@@ -137,73 +136,48 @@ static const uint8_t zmk_hid_report_desc_alt[] = {
     HID_OUTPUT(ZMK_HID_MAIN_VAL_DATA | ZMK_HID_MAIN_VAL_VAR | ZMK_HID_MAIN_VAL_ABS),
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_OUTPUT)
 
+#if IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+
+    // HID_USAGE_PAGE(HID_USAGE_CONSUMER),
+    // HID_USAGE(HID_USAGE_CONSUMER_CONSUMER_CONTROL),
+
+    HID_USAGE_PAGE(HID_USAGE_GD),
+    HID_USAGE(HID_USAGE_GD_PORTABLE_DEVICE_CONTROL),
+    
+    HID_COLLECTION(HID_COLLECTION_APPLICATION),
+
+        HID_REPORT_ID(ZMK_HID_REPORT_ID__IO_VOLUME_KNOB),
+        HID_USAGE(HID_USAGE_CONSUMER_VOLUME),
+
+        HID_COLLECTION(HID_COLLECTION_LOGICAL),
+
+
+    // HID_USAGE_PAGE(HID_USAGE_GD),
+    // HID_USAGE(HID_USAGE_GD_MOUSE),
+
+    // HID_COLLECTION(HID_COLLECTION_APPLICATION),
+    //     HID_REPORT_ID(ZMK_HID_REPORT_ID__IO_VOLUME_KNOB),
+    //     HID_USAGE(HID_USAGE_GD_POINTER),
+
+    //     HID_COLLECTION(HID_COLLECTION_PHYSICAL),
+
+            HID_USAGE_PAGE(HID_USAGE_CONSUMER),
+            HID_USAGE(HID_USAGE_CONSUMER_VOLUME),
+            HID_LOGICAL_MIN8(0),
+            HID_LOGICAL_MAX8(100),
+            HID_REPORT_SIZE(0x08),
+            HID_REPORT_COUNT(0x1),
+            HID_OUTPUT(ZMK_HID_MAIN_VAL_DATA | ZMK_HID_MAIN_VAL_VAR | ZMK_HID_MAIN_VAL_ABS
+                    //  | ZMK_HID_MAIN_VAL_NO_WRAP
+                    //  | ZMK_HID_MAIN_VAL_LIN
+                    //  | ZMK_HID_MAIN_VAL_NO_PREFERRED
+                     ),
+
+        HID_END_COLLECTION,
+    
     HID_END_COLLECTION,
-};
 
-#if IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
-struct zmk_hid_joystick_report_body_alt {
-    int8_t d_x;
-    int8_t d_y;
-    int8_t d_z;
-    int8_t d_rx;
-    int8_t d_ry;
-    int8_t d_rz;
-    zmk_joystick_button_flags_t buttons;
-} __packed;
-struct zmk_hid_joystick_report_alt {
-    uint8_t report_id;
-    struct zmk_hid_joystick_report_body_alt body;
-} __packed;
-int zmk_hid_joy2_button_press(zmk_joystick_button_t button);
-int zmk_hid_joy2_button_release(zmk_joystick_button_t button);
-int zmk_hid_joy2_buttons_press(zmk_joystick_button_flags_t buttons);
-int zmk_hid_joy2_buttons_release(zmk_joystick_button_flags_t buttons);
-void zmk_hid_joy2_movement_set(int16_t x, int16_t y);
-// void zmk_hid_joy2_scroll_set(int8_t x, int8_t y);
-void zmk_hid_joy2_movement_update(int16_t x, int16_t y);
-// void zmk_hid_joy2_scroll_update(int8_t x, int8_t y);
-void zmk_hid_joy2_clear(void);
-struct zmk_hid_joystick_report_alt *zmk_hid_get_joystick_report_alt();
-#endif // IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
-
-#if IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
-struct zmk_hid_mouse_report_body_alt {
-    zmk_mouse_button_flags_t buttons;
-    int16_t d_x;
-    int16_t d_y;
-    int16_t d_scroll_y;
-    int16_t d_scroll_x;
-} __packed;
-struct zmk_hid_mouse_report_alt {
-    uint8_t report_id;
-    struct zmk_hid_mouse_report_body_alt body;
-} __packed;
-int zmk_hid_mou2_button_press(zmk_mouse_button_t button);
-int zmk_hid_mou2_button_release(zmk_mouse_button_t button);
-int zmk_hid_mou2_buttons_press(zmk_mouse_button_flags_t buttons);
-int zmk_hid_mou2_buttons_release(zmk_mouse_button_flags_t buttons);
-void zmk_hid_mou2_movement_set(int16_t x, int16_t y);
-void zmk_hid_mou2_scroll_set(int16_t x, int16_t y);
-void zmk_hid_mou2_movement_update(int16_t x, int16_t y);
-void zmk_hid_mou2_scroll_update(int16_t x, int16_t y);
-void zmk_hid_mou2_clear(void);
-struct zmk_hid_mouse_report_alt *zmk_hid_get_mouse_report_alt();
-#endif // IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
-
-#if IS_ENABLED(CONFIG_ZMK_HID_IO_OUTPUT)
-struct zmk_hid_io_output_report_body {
-    uint8_t force;
-    uint8_t duration;
-} __packed;
-struct zmk_hid_io_output_report {
-    uint8_t report_id;
-    struct zmk_hid_io_output_report_body body;
-} __packed;
-struct hid_io_output_event {
-    enum zmk_transport tansport;
-    uint8_t force;
-    uint8_t duration;
-};
-void zmk_hid_io_output_process_report(struct zmk_hid_io_output_report_body *report,
-                                      struct zmk_endpoint_instance endpoint);
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_OUTPUT)
+
+    // HID_END_COLLECTION,
+};

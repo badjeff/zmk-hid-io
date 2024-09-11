@@ -21,6 +21,10 @@ config ZMK_HID_IO_OUTPUT
     bool "Enable HID I/O Output"
     default n
 
+config ZMK_HID_IO_VOLUME_KNOB
+    bool "Enable HID I/O Volume Knob"
+    default n
+
 config ZMK_HID_IO_BLE_JOYSTICK_REPORT_QUEUE_SIZE
     int "Max number of mouse HID reports to queue for sending over BLE"
     default 20
@@ -32,6 +36,10 @@ config ZMK_HID_IO_BLE_MOUSE_REPORT_QUEUE_SIZE
 config ZMK_HID_IO_OUTPUT_QUEUE_SIZE
     int "Maximum number of output events to allow queueing from HID"
     default 4
+
+config ZMK_HID_IO_BLE_VOLUME_KNOB_REPORT_QUEUE_SIZE
+    int "Max number of volume knob HID reports to queue for sending over BLE"
+    default 8
 
 DT_COMPAT_ZMK_INPUT_BEHAVIOR_FWD_TO_HID_IO := zmk,input-behavior-fwd-to-hid-io
 config ZMK_INPUT_BEHAVIOR_FWD_TO_HID_IO

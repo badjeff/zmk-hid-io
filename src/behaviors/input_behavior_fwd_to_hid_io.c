@@ -29,6 +29,7 @@ enum hid_io_usage {
     HID_IO_USAGE__MIN__ = 0,
     HID_IO_USAGE_FWD_TO_MOUSE,
     HID_IO_USAGE_FWD_TO_JOYSTICK,
+    HID_IO_USAGE_FWD_TO_VOLUME_KNOB,
     HID_IO_USAGE__MAX__,
 };
 
@@ -86,6 +87,18 @@ static void handle_rel_code(const struct behavior_fwd_to_hid_io_config *config,
 
 static void handle_abs_code(const struct behavior_fwd_to_hid_io_config *config,
                             struct behavior_fwd_to_hid_io_data *data, struct input_event *evt) {
+    switch (evt->code) {
+    case INPUT_ABS_X:
+        data->fwdr.data.mode = HID_IO_XY_DATA_MODE_ABS;
+        data->fwdr.data.x = evt->value;
+        break;
+    case INPUT_ABS_Y:
+        data->fwdr.data.mode = HID_IO_XY_DATA_MODE_ABS;
+        data->fwdr.data.y = evt->value;
+        break;
+    default:
+        break;
+    }
 }
 
 static void handle_key_code(const struct behavior_fwd_to_hid_io_config *config,
@@ -190,6 +203,15 @@ static int to_keymap_binding_pressed(struct zmk_behavior_binding *binding,
             zmk_endpoints_send_mouse_report_alt();
             zmk_hid_mou2_scroll_set(0, 0);
             zmk_hid_mou2_movement_set(0, 0);
+        }
+    #endif
+
+    #if IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+        if (config->usage == HID_IO_USAGE_FWD_TO_VOLUME_KNOB) {
+            if (data->fwdr.data.mode == HID_IO_XY_DATA_MODE_ABS) {
+                zmk_hid_volume_knob_vol_set(data->fwdr.data.y);
+            }
+            zmk_endpoints_send_volume_knob_report_alt();
         }
     #endif
 

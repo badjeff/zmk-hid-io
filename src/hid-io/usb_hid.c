@@ -65,6 +65,14 @@ static int get_report_cb(const struct device *dev, struct usb_setup_packet *setu
         break;
     }
 #endif
+#if IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+    case ZMK_HID_REPORT_ID__IO_VOLUME_KNOB: {
+        struct zmk_hid_volume_knob_report_alt *report = zmk_hid_get_volume_knob_report_alt();
+        *data = (uint8_t *)report;
+        *len = sizeof(*report);
+        break;
+    }
+#endif
     default:
         LOG_ERR("[# hid-io #] Invalid report ID %d requested", setup->wValue & HID_GET_REPORT_ID_MASK);
         return -EINVAL;
@@ -146,6 +154,13 @@ int zmk_usb_hid_send_mouse_report_alt() {
     return zmk_usb_hid_send_report_alt((uint8_t *)report, sizeof(*report));
 }
 #endif // IS_ENABLED(CONFIG_ZMK_HID_IO_MOUSE)
+
+#if IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
+int zmk_usb_hid_send_volume_knob_report_alt() {
+    struct zmk_hid_volume_knob_report_alt *report = zmk_hid_get_volume_knob_report_alt();
+    return zmk_usb_hid_send_report_alt((uint8_t *)report, sizeof(*report));
+}
+#endif // IS_ENABLED(CONFIG_ZMK_HID_IO_VOLUME_KNOB)
 
 static int zmk_usb_hid_init_alt(void) {
     hid_dev = device_get_binding("HID_1");
