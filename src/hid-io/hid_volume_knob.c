@@ -22,15 +22,15 @@ static struct zmk_hid_volume_knob_report_alt volume_knob_report_alt = {
     .report_id = ZMK_HID_REPORT_ID__IO_VOLUME_KNOB,
     .body = { .d_vol = 0 }};
 
-void zmk_hid_volume_knob_vol_set(int8_t vol) {
+void zmk_hid_volume_knob_vol_set(uint8_t vol) {
     volume_knob_report_alt.body.d_vol = vol;
     LOG_DBG("vol knob vol set to %d", volume_knob_report_alt.body.d_vol);
 }
 
-void zmk_hid_volume_knob_vol_update(int8_t vol) {
-    volume_knob_report_alt.body.d_vol += vol;
-    LOG_DBG("vol knob vol updated to %d", volume_knob_report_alt.body.d_vol);
-}
+// void zmk_hid_volume_knob_vol_update(uint8_t vol) {
+//     volume_knob_report_alt.body.d_vol += vol;
+//     LOG_DBG("vol knob vol updated to %d", volume_knob_report_alt.body.d_vol);
+// }
 
 void zmk_hid_volume_knob_clear(void) {
     LOG_DBG("vol knob report cleared");
