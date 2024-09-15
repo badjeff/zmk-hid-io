@@ -28,13 +28,13 @@ K_MSGQ_DEFINE(hid_io_output_event_msgq, sizeof(struct hid_io_output_event),
 void hid_io_output_event_work_callback(struct k_work *work) {
     struct hid_io_output_event ev;
     while (k_msgq_get(&hid_io_output_event_msgq, &ev, K_NO_WAIT) == 0) {
-        LOG_DBG("Trigger output event: f/%d  d/%d", ev.force, ev.duration);
+        LOG_DBG("Trigger output event: f/%d  d/%d", ev.force, ev.value);
 
         #if IS_ENABLED(CONFIG_ZMK_OUTPUT_BEHAVIOR_LISTENER)
         raise_zmk_output_event((struct zmk_output_event){
             .source = OUTPUT_SOURCE_TRANSPORT,
             .layer = zmk_keymap_highest_layer_active(),
-            .force = ev.force, .duration = ev.duration,
+            .force = ev.force, .value = ev.value, .state = true,
             .timestamp = k_uptime_get()
             });
         #else
@@ -51,7 +51,7 @@ void zmk_hid_io_output_process_report(struct zmk_hid_io_output_report_body *repo
     struct hid_io_output_event ev = {
         .tansport = endpoint.transport,
         .force = report->force,
-        .duration = report->duration,
+        .value = report->value,
     };
     k_msgq_put(&hid_io_output_event_msgq, &ev, K_NO_WAIT);
     k_work_submit(&hid_io_output_event_work);
