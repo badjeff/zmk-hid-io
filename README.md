@@ -57,7 +57,6 @@ This module is only convert input events form input subsystem into hid input/out
 See below config to explain how it cooperates with other input driver modules to setup a joystick/gamepad hid device.
 
 ZMK modules that used and should add to your `config/west.yml` for below `shield.keymap` sample.
-- [zmk-input-behavior-listener](https://github.com/badjeff/zmk-input-behavior-listener)
 - [zmk-analog-input-driver](https://github.com/badjeff/zmk-analog-input-driver)
 
 ```keymap
@@ -67,41 +66,22 @@ ZMK modules that used and should add to your `config/west.yml` for below `shield
 
 #define HID_IO_USAGE_FWD_TO_MOUSE 1
 #define HID_IO_USAGE_FWD_TO_JOYSTICK 2
+#define ZIP_HID_IO_USAGE_FWD_TO_VOLUME_KNOB 3
 
 / {
-        /* input config for mouse move mode on default layer (DEF & MSK) */
-        /* see README.md in module [zmk-input-behavior-listener] to setup */
-        analog_input_ibl {
-                /* new forked compatible name */
-                compatible = "zmk,input-behavior-listener";
-                
-                /* alias to the actial analog input device */
-                /* see README.md in module [zmk-analog-input-driver] to setup */
-                device = <&anin0>;
-
-                /* only enable in default layer (DEF) & mouse key layer (MSK) */
-                layers = <DEF>;
-
-                /* event code value to override raw input event */
-                /* designed for switching to mouse scroll, xy-swap, precise-mode+, etc */
-                evt-type = <INPUT_EV_REL>;
-                x-input-code = <INPUT_REL_X>;
-                y-input-code = <INPUT_REL_Y>;
-                scale-multiplier = <1>;
-                scale-divisor = <1>;
-
-                /* bind a behavior */
-                bindings = <&ib_fwd_to_hid_io>;
-        };
-
-        /* Setup behavior to intecept input and forward to new usage page  */
-        /* via hid-io-module, or build your own HID Descriptor */
-        ib_fwd_to_hid_io: ib_forward_fwd_to_hid_io {
-                compatible = "zmk,input-behavior-fwd-to-hid-io";
-                #binding-cells = <0>;
-                /* route the input as joystick report */
+        /* Setup input-processor to intecept input and forward to new usage page  */
+        zip_fwd_to_hid_io: zip_forward_fwd_to_hid_io {
+                compatible = "zmk,input-processor-fwd-to-hid-io";
+                #input-processor-cells = <0>;
                 usage = <HID_IO_USAGE_FWD_TO_JOYSTICK>;
         };
+
+        /* input listener config for mouse move mode */
+	analog_input_il {
+		compatible = "zmk,input-listener";
+		device = <&anin0>;
+                input-processors = <&zip_fwd_to_hid_io>;
+	};
 
         /* Setup joystick key press behavior and listener */
         /* listerer shall forward to JOYSTICK usage page if CONFIG_ZMK_HID_IO_JOYSTICK enabling */
@@ -112,8 +92,7 @@ ZMK modules that used and should add to your `config/west.yml` for below `shield
 	hidiokp_ibl {
 		compatible = "zmk,input-behavior-listener";
 		device = <&hidiokp>;
-		layers = <DEFAULT>;
-                bindings = <&ib_fwd_to_hid_io>;
+                input-processors = <&zip_fwd_to_hid_io>;
 	};
 
         keymap {
