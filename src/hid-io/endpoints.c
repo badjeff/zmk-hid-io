@@ -46,6 +46,12 @@ int zmk_endpoints_send_joystick_report_alt() {
 #else
     case ZMK_TRANSPORT_BLE: break;
 #endif /* IS_ENABLED(CONFIG_ZMK_BLE) */
+
+    case ZMK_TRANSPORT_NONE:  {
+        LOG_ERR("Current endpoint transport: NONE");
+        return 0;
+    }
+
     }
 
     LOG_ERR("Unsupported endpoint transport %d", current_instance.transport);
@@ -83,6 +89,8 @@ int zmk_endpoints_send_mouse_report_alt() {
 #else
     case ZMK_TRANSPORT_BLE: break;
 #endif /* IS_ENABLED(CONFIG_ZMK_BLE) */
+
+    case ZMK_TRANSPORT_NONE: return 0;
     }
 
     LOG_ERR("Unsupported endpoint transport %d", current_instance.transport);
@@ -120,6 +128,8 @@ int zmk_endpoints_send_volume_knob_report_alt() {
 #else
     case ZMK_TRANSPORT_BLE: break;
 #endif /* IS_ENABLED(CONFIG_ZMK_BLE) */
+
+    case ZMK_TRANSPORT_NONE: return 0;
     }
 
     LOG_ERR("Unsupported endpoint transport %d", current_instance.transport);

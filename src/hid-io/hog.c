@@ -229,7 +229,7 @@ BT_GATT_SERVICE_DEFINE(
 struct bt_conn *destination_connection_alt(void) {
     struct bt_conn *conn;
     bt_addr_le_t *addr = zmk_ble_active_profile_addr();
-    LOG_DBG("Address pointer %p", addr);
+    // LOG_DBG("Address pointer %p", addr);
     if (!bt_addr_le_cmp(addr, BT_ADDR_LE_ANY)) {
         LOG_WRN("Not sending, no active address for current profile");
         return NULL;
