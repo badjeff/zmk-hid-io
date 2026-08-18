@@ -5,6 +5,19 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 
+config ZMK_HID_IO_LEGACY_ENDPOINT_API
+    bool "Target a ZMK tree with the pre-rename endpoint API"
+    help
+      Build against a ZMK tree from before two endpoint API changes, rather
+      than current ZMK:
+
+        * the selected-endpoint accessor was zmk_endpoints_selected(), since
+          renamed to zmk_endpoint_get_selected()
+        * enum zmk_transport gained a ZMK_TRANSPORT_NONE member
+
+      Leave this off for current ZMK.
+    default n
+
 config ZMK_HID_IO
     bool "Enable HID I/O"
     default n
