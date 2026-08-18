@@ -2,6 +2,9 @@
 
 This module add new HID Usage Page for ZMK.
 
+> **Note**:
+> There is a spin-off module [zmk-hid-joystick](https://github.com/badjeff/zmk-hid-joystick) for Joystick/Gamepad HID.
+
 ## What it does
 
 It allow develop to add custom hid usage page to ZMK.
