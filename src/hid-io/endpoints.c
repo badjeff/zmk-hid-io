@@ -17,6 +17,12 @@ LOG_MODULE_DECLARE(hid_io, CONFIG_ZMK_HID_IO_LOG_LEVEL);
 #include <zmk/hid-io/usb_hid.h>
 #include <zmk/hid-io/hog.h>
 
+#ifndef ZMK_ENDPOINT_NONE_COUNT
+struct zmk_endpoint_instance zmk_endpoint_get_selected(void) {
+    return zmk_endpoint_selected();
+}
+#endif
+
 #if IS_ENABLED(CONFIG_ZMK_HID_IO_JOYSTICK)
 int zmk_endpoints_send_joystick_report_alt() {
     struct zmk_endpoint_instance current_instance = zmk_endpoint_get_selected();
@@ -47,10 +53,12 @@ int zmk_endpoints_send_joystick_report_alt() {
     case ZMK_TRANSPORT_BLE: break;
 #endif /* IS_ENABLED(CONFIG_ZMK_BLE) */
 
+#ifdef ZMK_ENDPOINT_NONE_COUNT
     case ZMK_TRANSPORT_NONE:  {
         LOG_ERR("Current endpoint transport: NONE");
         return 0;
     }
+#endif
 
     }
 
@@ -90,7 +98,9 @@ int zmk_endpoints_send_mouse_report_alt() {
     case ZMK_TRANSPORT_BLE: break;
 #endif /* IS_ENABLED(CONFIG_ZMK_BLE) */
 
+#ifdef ZMK_ENDPOINT_NONE_COUNT
     case ZMK_TRANSPORT_NONE: return 0;
+#endif
     }
 
     LOG_ERR("Unsupported endpoint transport %d", current_instance.transport);
@@ -129,7 +139,9 @@ int zmk_endpoints_send_volume_knob_report_alt() {
     case ZMK_TRANSPORT_BLE: break;
 #endif /* IS_ENABLED(CONFIG_ZMK_BLE) */
 
+#ifdef ZMK_ENDPOINT_NONE_COUNT
     case ZMK_TRANSPORT_NONE: return 0;
+#endif
     }
 
     LOG_ERR("Unsupported endpoint transport %d", current_instance.transport);
