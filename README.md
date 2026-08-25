@@ -3,7 +3,7 @@
 This module add new HID Usage Page for ZMK.
 
 > **Note**:
-> There is a spin-off module [zmk-hid-joystick](https://github.com/badjeff/zmk-hid-joystick) for Joystick/Gamepad HID.
+> There is a spin-off modules [zmk-hid-joystick](https://github.com/badjeff/zmk-hid-joystick) for Joystick/Gamepad HID. And [zmk-hid-mou2nd](https://github.com/badjeff/zmk-hid-mou2nd) for secondary Mouse HID
 
 ## What it does
 
